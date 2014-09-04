@@ -32,6 +32,7 @@ class B
         B()
         {
         }
+        
         //B(B const& src) = delete;
         //B& operator=(B const& src) = delete;
         //B(B&& src)
@@ -51,9 +52,9 @@ int main(int argn, char** argv)
     A<double> a2;
 
     a1 = std::move(a2);
-
-    B<double> b1;
-    B<double> b2;
-
-    b1 = std::move(b2);
+    B<double> b0;
+    B<double> b1[2];
+    
+    b1[1] = b0;
+    b1[0] = B<double>();
 }
