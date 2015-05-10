@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <cuda.h>
-#include <chrono>
+#include <sys/time.h>
 
 #define MAX_ITER 2048
 
@@ -9,6 +9,12 @@ inline __host__ __device__ int num_blocks(int length, int block_size)
     return (length / block_size) + min(length % block_size, 1);
 }
 
+inline double __host__ wtime()
+{
+    timeval t;
+    gettimeofday(&t, NULL);
+    return double(t.tv_sec) + double(t.tv_usec) / 1e6;
+}
 
 inline int __device__ __host__ point_depth(double x, double y, int max_iter)
 {
@@ -118,20 +124,18 @@ void test3(int Nx, int Ny, int* d_ptr, int* h_ptr)
     dim3 dim_t(32);
     dim3 dim_b(num_blocks(Nx, dim_t.x), Ny);
     
-    std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+    double tval = -wtime();
     mandelbrot_set_v3 <<<dim_b, dim_t>>>(d_ptr, -0.6922576383364505, 0.3261539381815615, 0.02, Nx, Ny);
     cudaDeviceSynchronize();
     
-    std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> tdiff = std::chrono::duration_cast< std::chrono::duration<double> >(t2 - t1);
-    double val = tdiff.count();
+    tval += wtime();
 
-    printf("time: %18.12f\n", val);
+    printf("time: %18.12f\n", tval);
     cudaMemcpy(h_ptr, d_ptr, Nx * Ny * sizeof(int), cudaMemcpyDeviceToHost);
 
     size_t nop = 0;
     for (size_t i = 0; i < Nx * Ny; i++) nop += h_ptr[i];
-    printf("performance: %12.6f GFlops\n", 8e-9 * nop / val);
+    printf("performance: %12.6f GFlops\n", 8e-9 * nop / tval);
 }
 
 int main(int argn, char** argv)
