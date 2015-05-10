@@ -34,6 +34,25 @@ inline int __device__ __host__ point_depth(double x, double y, int max_iter)
     return max_iter;
 }
 
+inline int __device__ __host__ point_depth_v2(double x, double y, int max_iter)
+{
+    int depth = 0;
+    double t1, t2;
+    double xn = x;
+    double yn = y;
+    for (int iter = 0; iter < max_iter; iter++)
+    {
+        t1 = xn * xn;
+        t2 = yn * yn;
+    
+        yn = 2 * xn * yn + y;
+        xn = t1 - t2 + x;
+
+        if (t1 + t2 < 4) depth = iter;
+    }
+    return depth;
+}
+
 __global__ void mandelbrot_set(int* raw_data, double x0, double y0, double scale, int Nx, int Ny)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -138,6 +157,39 @@ void test3(int Nx, int Ny, int* d_ptr, int* h_ptr)
     printf("performance: %12.6f GFlops\n", 8e-9 * nop / tval);
 }
 
+__global__ void mandelbrot_set_v4(int* raw_data, double x0, double y0, double scale, int Nx, int Ny)
+{
+    int ix = blockDim.x * blockIdx.x + threadIdx.x;
+    int iy = blockIdx.y;
+
+    if (ix < Nx)
+    {
+        double x = x0 + scale * double(ix - (Nx >> 1)) / Nx;
+        double y = y0 + scale * double(iy - (Ny >> 1)) / Ny;
+
+        raw_data[ix + Nx * iy] = point_depth_v2(x, y, MAX_ITER);
+    }
+}
+
+void test4(int Nx, int Ny, int* d_ptr, int* h_ptr)
+{
+    dim3 dim_t(32);
+    dim3 dim_b(num_blocks(Nx, dim_t.x), Ny);
+    
+    double tval = -wtime();
+    mandelbrot_set_v4 <<<dim_b, dim_t>>>(d_ptr, -0.6922576383364505, 0.3261539381815615, 0.02, Nx, Ny);
+    cudaDeviceSynchronize();
+    
+    tval += wtime();
+
+    printf("time: %18.12f\n", tval);
+    cudaMemcpy(h_ptr, d_ptr, Nx * Ny * sizeof(int), cudaMemcpyDeviceToHost);
+
+    size_t nop = 0;
+    for (size_t i = 0; i < Nx * Ny; i++) nop += MAX_ITER;
+    printf("performance: %12.6f GFlops\n", 8e-9 * nop / tval);
+}
+
 int main(int argn, char** argv)
 {
     int* d_raw_data;
@@ -151,7 +203,7 @@ int main(int argn, char** argv)
 
     for (int i = 0; i < 10; i++)
     {
-        test3(Nx, Ny, d_raw_data, h_raw_data);
+        test4(Nx, Ny, d_raw_data, h_raw_data);
     }
     
     //dim3 threadsPerBlock(8, 8);
