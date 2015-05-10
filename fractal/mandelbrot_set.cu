@@ -53,6 +53,24 @@ inline int __device__ __host__ point_depth_v2(double x, double y, int max_iter)
     return depth;
 }
 
+inline int __device__ __host__ point_depth_v3(double x, double y, int max_iter)
+{
+    int depth = 0;
+    double t1, t2;
+    double xn = x;
+    double yn = y;
+    for (int iter = 0; iter < max_iter; iter++)
+    {
+        t1 = xn * xn;
+        t2 = yn * yn;
+    
+        yn = 2 * xn * yn + y;
+        xn = t1 - t2 + x;
+    }
+    if (t1 + t2 < 4) depth = 1;
+    return depth;
+}
+
 __global__ void mandelbrot_set(int* raw_data, double x0, double y0, double scale, int Nx, int Ny)
 {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -167,7 +185,7 @@ __global__ void mandelbrot_set_v4(int* raw_data, double x0, double y0, double sc
         double x = x0 + scale * double(ix - (Nx >> 1)) / Nx;
         double y = y0 + scale * double(iy - (Ny >> 1)) / Ny;
 
-        raw_data[ix + Nx * iy] = point_depth_v2(x, y, MAX_ITER);
+        raw_data[ix + Nx * iy] = point_depth_v3(x, y, MAX_ITER);
     }
 }
 
