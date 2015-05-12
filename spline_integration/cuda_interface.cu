@@ -16,6 +16,7 @@ extern "C" {
 
 void cuda_initialize()
 {
+    cuInit(0);
     //CALL_CUDA(cudaSetDeviceFlags, (cudaDeviceMapHost));
 }
 
