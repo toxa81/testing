@@ -33,8 +33,6 @@ extern "C" void libsci_acc_finalize();
 extern "C" int libsci_acc_HostRegister(void *ptr, size_t size);
 extern "C" int libsci_acc_HostUnregister(void *ptr);
 
-extern "C" int test_local_cuda_zgemm();
-
 void test_real(int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, int bs_col)
 {
     int32_t blacs_handler = Csys2blacs_handle(MPI_COMM_WORLD);
@@ -115,13 +113,6 @@ int main(int argn, char** argv)
     int32_t rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    if (test_local_cuda_zgemm())
-    {
-        printf("failed to test local cuda zgem\n");
-        MPI_Abort(MPI_COMM_WORLD, 666);
-    }
-
-    /* assume a square grid */
     int32_t num_ranks_row, num_ranks_col;
     num_ranks_row = num_ranks;
     num_ranks_col = 1;
