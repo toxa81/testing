@@ -2,6 +2,7 @@
 
 void Platform::initialize()
 {
+    cuda_initialize();
     cuda_device_info();
 }
 

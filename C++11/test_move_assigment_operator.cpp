@@ -55,6 +55,6 @@ int main(int argn, char** argv)
     B<double> b0;
     B<double> b1[2];
     
-    b1[1] = b0;
+    b1[1] = std::move(b0);
     b1[0] = B<double>();
 }

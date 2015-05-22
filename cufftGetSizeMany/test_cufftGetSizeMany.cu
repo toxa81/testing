@@ -49,6 +49,8 @@ void cufft_check_error(const char* file_name, const int line_number, cufftResult
 
 int main(int argn, char** argv)
 {
+    cuInit(0);
+
     cufftHandle plan;
 
     cufftResult result = cufftCreate(&plan);
