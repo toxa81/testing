@@ -104,6 +104,13 @@ void test_real(Communicator const& comm, int M, int K, int num_ranks_row, int nu
     Cfree_blacs_system_handle(blacs_handler);
 }
 
+#if defined(__PILAENV_BLOCKSIZE)
+extern "C" int pilaenv_(int* ctxt, char* prec) 
+{
+    return __PILAENV_BLOCKSIZE;
+}
+#endif
+
 
 int main(int argn, char** argv)
 {
@@ -148,6 +155,9 @@ int main(int argn, char** argv)
         libsci_acc_init();
         #endif
 
+        test_real(mpi_grid.communicator(1 << 0), M, K, num_ranks_row, num_ranks_col, bs_row, bs_col);
+        comm_world.barrier();
+        if (comm_world.rank() == 0) printf("===============\n");
         test_real(mpi_grid.communicator(1 << 0), M, K, num_ranks_row, num_ranks_col, bs_row, bs_col);
         
         #ifdef __LIBSCI_ACC
