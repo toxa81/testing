@@ -26,12 +26,14 @@ extern "C" void Cfree_blacs_system_handle(int ISysCtxt);
 extern "C" void Cblacs_barrier(int ConTxt, const char* scope);
 extern "C" void Cblacs_gridexit(int ConTxt);
 
+#ifdef __LIBSCI_ACC
 extern "C" int libsci_acc_HostAlloc(void **ptr, size_t numBytes);
 extern "C" int libsci_acc_HostFree(void *ptr);
 extern "C" void libsci_acc_init();
 extern "C" void libsci_acc_finalize();
 extern "C" int libsci_acc_HostRegister(void *ptr, size_t size);
 extern "C" int libsci_acc_HostUnregister(void *ptr);
+#endif
 
 void test_real(int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, int bs_col)
 {
@@ -53,7 +55,8 @@ void test_real(int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, i
     num_A_rows_local = numroc_(&K, &bs_row, &rank_row, &isrc, &num_ranks_row);
     num_A_cols_local = numroc_(&M, &bs_col, &rank_col, &isrc, &num_ranks_col);
     /* C is M x M matrix */
-    num_C_rows_local = numroc_(&M, &bs_row, &rank_row, &isrc, &num_ranks_row);
+    /* block size of C is the same in both directions */
+    num_C_rows_local = numroc_(&M, &bs_col, &rank_row, &isrc, &num_ranks_row);
     num_C_cols_local = numroc_(&M, &bs_col, &rank_col, &isrc, &num_ranks_col);
 
     int32_t info;
@@ -67,8 +70,10 @@ void test_real(int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, i
     std::vector<double> A(num_A_rows_local * num_A_cols_local);
     std::vector<double> C(num_C_rows_local * num_C_cols_local, 0.0);
     
+    #ifdef __LIBSCI_ACC
     libsci_acc_HostRegister(&A[0], A.size() * sizeof(double));
     libsci_acc_HostRegister(&C[0], C.size() * sizeof(double));
+    #endif
 
     for (size_t i = 0; i < A.size(); i++) A[i] = double(rand()) / RAND_MAX;
 
@@ -84,8 +89,10 @@ void test_real(int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, i
     MPI_Barrier(MPI_COMM_WORLD);
     time += MPI_Wtime();
 
+    #ifdef __LIBSCI_ACC
     libsci_acc_HostUnregister(&A[0]);
     libsci_acc_HostUnregister(&C[0]);
+    #endif
 
     if (rank_row == 0 && rank_col == 0)
     {
@@ -101,7 +108,7 @@ int main(int argn, char** argv)
 {
     if (argn != 5)
     {
-        printf("Usage: %s M K bs_row bs_col\n", argv[0]);
+        printf("Usage: %s K(large) M(small) bs_row bs_col\n", argv[0]);
         exit(0);
     }
     
@@ -118,8 +125,8 @@ int main(int argn, char** argv)
     num_ranks_col = 1;
 
     int32_t M, K, bs_row, bs_col;
-    std::istringstream(argv[1]) >> M;
-    std::istringstream(argv[2]) >> K;
+    std::istringstream(argv[1]) >> K;
+    std::istringstream(argv[2]) >> M;
     std::istringstream(argv[3]) >> bs_row;
     std::istringstream(argv[4]) >> bs_col;
 
@@ -130,11 +137,15 @@ int main(int argn, char** argv)
         printf("bs_row: %i, bs_col: %i\n", bs_row, bs_col);
     }
 
+    #ifdef __LIBSCI_ACC
     libsci_acc_init();
+    #endif
 
     test_real(M, K, num_ranks_row, num_ranks_col, bs_row, bs_col);
-
+    
+    #ifdef __LIBSCI_ACC
     libsci_acc_finalize();
+    #endif
 
     MPI_Finalize();
 }
