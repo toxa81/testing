@@ -132,7 +132,7 @@ int main(int argn, char** argv)
 
     libsci_acc_init();
 
-    test_real(M, K, num_ranks_row, num_ranks_col, 128, 128);
+    test_real(M, K, num_ranks_row, num_ranks_col, bs_row, bs_col);
 
     libsci_acc_finalize();
 
