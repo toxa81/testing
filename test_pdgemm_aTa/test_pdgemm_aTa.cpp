@@ -62,7 +62,7 @@ void test_real(int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, i
     int32_t ld_A = std::max(1, num_A_rows_local); 
     int32_t ld_C = std::max(1, num_C_rows_local); 
     descinit_(desc_A, &K, &M, &bs_row, &bs_col, &isrc, &isrc, &context, &ld_A, &info);
-    descinit_(desc_C, &M, &M, &bs_row, &bs_col, &isrc, &isrc, &context, &ld_C, &info);
+    descinit_(desc_C, &M, &M, &bs_col, &bs_col, &isrc, &isrc, &context, &ld_C, &info);
 
     std::vector<double> A(num_A_rows_local * num_A_cols_local);
     std::vector<double> C(num_C_rows_local * num_C_cols_local, 0.0);
@@ -99,7 +99,7 @@ void test_real(int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, i
 
 int main(int argn, char** argv)
 {
-    if (argn != 3)
+    if (argn != 5)
     {
         printf("Usage: %s M K bs_row bs_col\n", argv[0]);
         exit(0);
