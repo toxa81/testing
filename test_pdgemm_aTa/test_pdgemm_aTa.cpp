@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <complex>
 #include <vector>
+#include "mpi_grid.h"
 
 extern "C" void pdgemm_(const char* transa, const char* transb, 
                         int32_t* m, int32_t* n, int32_t* k, 
@@ -35,9 +36,9 @@ extern "C" int libsci_acc_HostRegister(void *ptr, size_t size);
 extern "C" int libsci_acc_HostUnregister(void *ptr);
 #endif
 
-void test_real(int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, int bs_col)
+void test_real(Communicator const& comm, int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, int bs_col)
 {
-    int32_t blacs_handler = Csys2blacs_handle(MPI_COMM_WORLD);
+    int32_t blacs_handler = Csys2blacs_handle(comm.mpi_comm());
     int32_t context = blacs_handler;
 
     /* create a BLACS context */
@@ -86,7 +87,7 @@ void test_real(int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, i
 
     double time = -MPI_Wtime();
     pdgemm_(transA, transB, &M, &M, &K, &alpha, &A[0], &ione, &ione, desc_A, &A[0], &ione, &ione, desc_A, &beta, &C[0], &ione, &ione, desc_C, 1, 1);
-    MPI_Barrier(MPI_COMM_WORLD);
+    comm.barrier();
     time += MPI_Wtime();
 
     #ifdef __LIBSCI_ACC
@@ -106,46 +107,53 @@ void test_real(int M, int K, int num_ranks_row, int num_ranks_col, int bs_row, i
 
 int main(int argn, char** argv)
 {
-    if (argn != 5)
+    if (argn != 6)
     {
-        printf("Usage: %s K(large) M(small) bs_row bs_col\n", argv[0]);
+        printf("Usage: %s K(large) M(small) bs_row bs_col comm_size\n", argv[0]);
         exit(0);
     }
-    
-    MPI_Init(NULL, NULL);
 
-    int32_t num_ranks;
-    MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
-
-    int32_t rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-    int32_t num_ranks_row, num_ranks_col;
-    num_ranks_row = num_ranks;
-    num_ranks_col = 1;
-
-    int32_t M, K, bs_row, bs_col;
+    int32_t M, K, bs_row, bs_col, comm_size;
     std::istringstream(argv[1]) >> K;
     std::istringstream(argv[2]) >> M;
     std::istringstream(argv[3]) >> bs_row;
     std::istringstream(argv[4]) >> bs_col;
-
-    if (rank == 0)
-    {
-        printf("Running on %i rank(s) (%i x %i grid), ", num_ranks, num_ranks_row, num_ranks_col);
-        printf("global martix dimensions (M, K): %i, %i\n", M, K);
-        printf("bs_row: %i, bs_col: %i\n", bs_row, bs_col);
-    }
-
-    #ifdef __LIBSCI_ACC
-    libsci_acc_init();
-    #endif
-
-    test_real(M, K, num_ranks_row, num_ranks_col, bs_row, bs_col);
+    std::istringstream(argv[5]) >> comm_size;
     
-    #ifdef __LIBSCI_ACC
-    libsci_acc_finalize();
-    #endif
+    MPI_Init(NULL, NULL);
+
+    {
+        int32_t num_ranks;
+        MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+
+        std::vector<int> grid_dims = {comm_size, num_ranks / comm_size};
+        Communicator comm_world(MPI_COMM_WORLD);
+        MPI_grid mpi_grid(grid_dims, comm_world);
+
+        //int32_t rank;
+        //MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+        int32_t num_ranks_row, num_ranks_col;
+        num_ranks_row = comm_size;
+        num_ranks_col = 1;
+
+        //== if (rank == 0)
+        //== {
+        //==     printf("Running on %i rank(s) (%i x %i grid), ", num_ranks, num_ranks_row, num_ranks_col);
+        //==     printf("global martix dimensions (M, K): %i, %i\n", M, K);
+        //==     printf("bs_row: %i, bs_col: %i\n", bs_row, bs_col);
+        //== }
+
+        #ifdef __LIBSCI_ACC
+        libsci_acc_init();
+        #endif
+
+        test_real(mpi_grid.communicator(1 << 0), M, K, num_ranks_row, num_ranks_col, bs_row, bs_col);
+        
+        #ifdef __LIBSCI_ACC
+        libsci_acc_finalize();
+        #endif
+    }
 
     MPI_Finalize();
 }
