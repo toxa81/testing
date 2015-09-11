@@ -52,14 +52,14 @@ void test_a2a_BW(int local_size)
     {
         if (rank == i)
         {
-            printf("rank: %i, injection bandwidth: %.3f GB/sec.\n", i, repeat * (num_ranks - 1) * local_size / t / (1 << 30));
+            printf("rank: %i, injection bandwidth: %.3f GB/sec.\n", i, double(repeat) * (num_ranks - 1) * local_size / t / (1 << 30));
             double avg = 0;
             for (int j = 0; j < repeat; j++) avg += times[i];
             avg /= repeat;
             double variance = 0;
             for (int i = 0; i < repeat; i++) variance += std::pow(times[i] - avg, 2);
             double sigma = std::sqrt(variance);
-            printf("         average time: %.4f (us), sigma: %.4f (us), CV: %.2f%%\n", avg, sigma, 100 * sigma / avg);
+            printf("         average time: %.4f (us), sigma: %.4f (us), CV: %.2f%%\n", avg * 1e6, sigma * 1e6, 100 * sigma / avg);
         }
     }
 }
