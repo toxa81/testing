@@ -117,7 +117,7 @@ int main(int argn, char** argv)
     CALL_CUFFT(cufftSetAutoAllocation, (plan1, true));
     CALL_CUFFT(cufftSetAutoAllocation, (plan2, true));
 
-    int dims[] = {64, 64, 128};
+    int dims[] = {128, 128, 128};
     size_t work_size;
     CALL_CUFFT(cufftMakePlanMany, (plan1, 3, dims, dims, 1, 1, dims, 1, 1, CUFFT_Z2Z, 1, &work_size));
     CALL_CUFFT(cufftMakePlanMany, (plan2, 3, dims, dims, 1, 1, dims, 1, 1, CUFFT_Z2Z, 1, &work_size));
