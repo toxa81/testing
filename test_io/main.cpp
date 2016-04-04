@@ -3,6 +3,23 @@
 #include "runtime.h"
 #include "communicator.h"
 
+double write_buffer(size_t len)
+{
+    std::vector<char> buf(len, '0');
+
+    std::stringstream s;
+    s << "test." << mpi_comm_world().rank() << ".bin";
+
+    runtime::Timer t("fwrite");
+    FILE* fout = fopen(s.str().c_str(), "w");
+    fwrite(&buf[0], sizeof(char), buf.size(), fout);
+    fclose(fout);
+
+    double tval = t.stop();
+    
+    return (buf.size() * sizeof(char) / double(1 << 30) / tval);
+}
+
 void write_in_blocks()
 {
     std::stringstream s;
@@ -69,7 +86,16 @@ int main(int argn, char** argv)
 {
     Communicator::initialize();
 
-    write_in_blocks();
+    for (int i = 0; i < 100; i++)
+    {
+        size_t len = i * (1 << 26);
+        double speed = write_buffer(len);
+        printf("%f %f\n", len / double(1 << 30), speed);
+    }
+
+        
+
+    //write_in_blocks();
 
     //write_sequential();
 
