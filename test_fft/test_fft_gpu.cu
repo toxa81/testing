@@ -220,9 +220,13 @@ int main(int argn, char** argv)
     CALL_CUDA(cudaMalloc, (&buf1, buf_size));
     CALL_CUDA(cudaMemset, (buf1, 0, buf_size));
 
+    int sz_tmp = (nx * ny) * nfft / 4;
+    cuDoubleComplex *b = new cuDoubleComplex[sz_tmp];
+
     double t = -current_time();
     for (int i = 0; i < 200; i++) {
         //CALL_CUDA(cudaMemset, (buf1, 0, buf_size));
+        CALL_CUDA(cudaMemcpy, (buf1, b, sz_tmp * sizeof(cuDoubleComplex), cudaMemcpyHostToDevice));
         randomize_on_gpu((double*)buf1, nx * ny * nfft * 2);
         CALL_CUFFT(cufftExecZ2Z, (plan1, buf1, buf1, CUFFT_FORWARD));
     }
