@@ -26,14 +26,14 @@ int main(int argn, char** argv)
 
     std::vector<fftw_plan> plan_forward_xy_;
     plan_forward_xy_  = std::vector<fftw_plan>(omp_get_max_threads());
-    
+
     std::vector<double_complex*> fftw_buffer_xy_;
     for (int i = 0; i < omp_get_max_threads(); i++) {
         fftw_buffer_xy_.push_back((double_complex*)fftw_malloc(nx * ny * sizeof(double_complex)));
     }
 
     for (int i = 0; i < omp_get_max_threads(); i++) {
-        plan_forward_xy_[i] = fftw_plan_dft_2d(ny, nx, (fftw_complex*)fftw_buffer_xy_[i], 
+        plan_forward_xy_[i] = fftw_plan_dft_2d(ny, nx, (fftw_complex*)fftw_buffer_xy_[i],
                                                (fftw_complex*)fftw_buffer_xy_[i], FFTW_FORWARD, FFTW_ESTIMATE);
     }
 
@@ -56,3 +56,4 @@ int main(int argn, char** argv)
     printf("speed: %.4f 2D FFTs / sec.\n", 200 * nfft / t);
 
 }
+
