@@ -2,6 +2,7 @@
 #include <string.h>
 #include <omp.h>
 #include <vector>
+#include <cstring>
 
 extern "C" void memcpy_custom(double* out, double* in, int length);
 
@@ -17,7 +18,7 @@ int main(int argn, char** argv)
     {
         for (int i = 0; i < repeat; i++)
         {
-            memcpy(&out[0], &inp[0], N * sizeof(double));
+            std::memcpy(&out[0], &inp[0], N * sizeof(double));
         }
     }
     else

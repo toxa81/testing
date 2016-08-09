@@ -45,7 +45,7 @@ int main(int argn, char** argv)
             #pragma omp for
             for (int iz = 0; iz < nfft; iz++) {
                 for (int k = 0; k < nx * ny; k++) {
-                    fftw_buffer_xy_[tid][k] = rnd();
+                    fftw_buffer_xy_[tid][k] = double_complex(1, 1);
                 }
                 fftw_execute(plan_forward_xy_[tid]);
             }

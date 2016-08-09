@@ -11,9 +11,20 @@ double write_buffer(size_t len)
     s << "test." << mpi_comm_world().rank() << ".bin";
 
     runtime::Timer t("fwrite");
+
+    double t1 = -omp_get_wtime();
     FILE* fout = fopen(s.str().c_str(), "w");
+    t1 += omp_get_wtime();
+
+    double t2 = -omp_get_wtime();
     fwrite(&buf[0], sizeof(char), buf.size(), fout);
+    t2 += omp_get_wtime();
+
+    double t3 = -omp_get_wtime();
     fclose(fout);
+    t3 += omp_get_wtime();
+
+    printf("%f %f %f\n", t1, t2, t3);
 
     double tval = t.stop();
     
@@ -86,7 +97,7 @@ int main(int argn, char** argv)
 {
     Communicator::initialize();
 
-    for (int i = 0; i < 100; i++)
+    for (int i = 1; i < 100; i += 5)
     {
         size_t len = i * (1 << 26);
         double speed = write_buffer(len);

@@ -1,8 +1,11 @@
 #include <mpi.h>
 #include <vector>
+#include <chrono>
 #include <complex>
 #include <stdio.h>
 #include <stdlib.h>
+
+#define NOW std::chrono::high_resolution_clock::now()
 
 void test_a2a_BW(int local_size)
 {
@@ -36,17 +39,18 @@ void test_a2a_BW(int local_size)
     std::vector<double> times(repeat);
 
     MPI_Barrier(MPI_COMM_WORLD);
-    double t = -MPI_Wtime();
+    auto t0 = NOW;
     for (int i = 0; i < repeat; i++)
     {
-        times[i] = -MPI_Wtime();
+        auto tt = NOW;
         MPI_Alltoallv(&sbuf[0], &sendcounts[0], &sdispls[0], MPI_CHAR,
                       &rbuf[0], &recvcounts[0], &rdispls[0], MPI_CHAR,
                       MPI_COMM_WORLD);
-        times[i] += MPI_Wtime();
+        MPI_Barrier(MPI_COMM_WORLD);
+        times[i] = std::chrono::duration_cast< std::chrono::duration<double> >(NOW - tt).count();
     }
     MPI_Barrier(MPI_COMM_WORLD);
-    t += MPI_Wtime();
+    t = std::chrono::duration_cast< std::chrono::duration<double> >(NOW - t0).count();
 
     for (int i = 0; i < num_ranks; i++)
     {

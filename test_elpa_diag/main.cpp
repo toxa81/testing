@@ -47,9 +47,9 @@ void test_diag(int N, BLACS_grid& blacs_grid)
     for (int i = 0; i < N; i++) b.add(i, i, 2.0 / (1.0 + i));
     
     //generalized_evp_scalapack solver(blacs_grid, -1.0, bs, bs); 
-    generalized_evp_elpa1 solver(blacs_grid, bs);
+    generalized_evp_elpa2 solver(blacs_grid, bs);
     /* take 10% of eigenvectors */
-    int nev = 0.1 * N;
+    int nev = N; //0.1 * N;
     //int nev = N;
     dmatrix<ftn_double_complex> z(N, nev, blacs_grid, bs, bs);
     z.zero();

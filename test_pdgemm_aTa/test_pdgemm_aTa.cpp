@@ -68,7 +68,7 @@ void test_real(Communicator const& comm, int M, int K, int num_ranks_row, int nu
     descinit_(desc_A, &K, &M, &bs_row, &bs_col, &isrc, &isrc, &context, &ld_A, &info);
     descinit_(desc_C, &M, &M, &bs_col, &bs_col, &isrc, &isrc, &context, &ld_C, &info);
 
-    std::vector<double> A(num_A_rows_local * num_A_cols_local);
+    std::vector<double> A(num_A_rows_local * num_A_cols_local, 0.0);
     std::vector<double> C(num_C_rows_local * num_C_cols_local, 0.0);
     
     #ifdef __LIBSCI_ACC
@@ -76,7 +76,7 @@ void test_real(Communicator const& comm, int M, int K, int num_ranks_row, int nu
     libsci_acc_HostRegister(&C[0], C.size() * sizeof(double));
     #endif
 
-    for (size_t i = 0; i < A.size(); i++) A[i] = double(rand()) / RAND_MAX;
+    //for (size_t i = 0; i < A.size(); i++) A[i] = double(rand()) / RAND_MAX;
 
     double alpha = 1.0;
     double beta = 0.0;
@@ -128,7 +128,7 @@ int main(int argn, char** argv)
     std::istringstream(argv[5]) >> comm_size;
     
     MPI_Init(NULL, NULL);
-
+    
     {
         int32_t num_ranks;
         MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);

@@ -7,6 +7,7 @@
 #include <cufft.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <stdint.h>
 
 #ifdef NDEBUG
 #define CALL_CUDA(func__, args__)                                                                                  \

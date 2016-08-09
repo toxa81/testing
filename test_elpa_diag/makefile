@@ -1,3 +1,3 @@
 all:
-	mpic++ -O0 -g -fopenmp -std=c++11 -D__SCALAPACK -D__ELPA -c linalg.cpp -o linalg.o
-	mpic++ -O0 -g -fopenmp -std=c++11 -D__SCALAPACK -D__ELPA main.cpp linalg.o ~/src/LAPACK/scalapack-2.0.2/libscalapack.a ~/src/LAPACK/lapack-3.4.2/liblapack.a /Users/antonk/src/LAPACK/lapack-3.4.2/librefblas.a ~/local/lib/libmpi_mpifh.a -L/opt/local/lib -lz -lgfortran ./elpa/libelpa.a
+	CC -O3 -openmp -std=c++11 -D__SCALAPACK -D__ELPA -c linalg.cpp -o linalg.o
+	CC -O3 -openmp -std=c++11 -D__SCALAPACK -D__ELPA main.cpp linalg.o ./elpa/libelpa.a $(MKLROOT)/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group  $(MKLROOT)/lib/intel64/libmkl_intel_lp64.a $(MKLROOT)/lib/intel64/libmkl_gnu_thread.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_blacs_intelmpi_lp64.a -Wl,--end-group -lpthread

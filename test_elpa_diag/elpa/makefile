@@ -1,5 +1,5 @@
-MPI_FC = mpif90
-MPI_FC_OPT = -O0 -g -fopenmp -cpp
+MPI_FC = ftn
+MPI_FC_OPT = -O3 -openmp -cpp
 
 .SUFFIXES: .F90 .f90
 

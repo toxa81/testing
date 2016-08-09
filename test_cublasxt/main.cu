@@ -1,4 +1,4 @@
-#include <cublasxt.h>
+#include <cublasXt.h>
 #include <stdio.h>
 #include <sys/time.h>
 
