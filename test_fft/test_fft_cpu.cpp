@@ -7,12 +7,12 @@
 
 typedef std::complex<double> double_complex;
 
-inline double current_time()
-{
-    timeval t;
-    gettimeofday(&t, NULL);
-    return double(t.tv_sec) + double(t.tv_usec) / 1e6;
-}
+//inline double current_time()
+//{
+//    timeval t;
+//    gettimeofday(&t, NULL);
+//    return double(t.tv_sec) + double(t.tv_usec) / 1e6;
+//}
 
 inline std::complex<double> rnd()
 {
@@ -21,8 +21,8 @@ inline std::complex<double> rnd()
 
 int main(int argn, char** argv)
 {
-    int nx{100}, ny{100};
-    int nfft{100};
+    int nx{160}, ny{160};
+    int nfft{160};
 
     std::vector<fftw_plan> plan_forward_xy_;
     plan_forward_xy_  = std::vector<fftw_plan>(omp_get_max_threads());
@@ -37,7 +37,7 @@ int main(int argn, char** argv)
                                                (fftw_complex*)fftw_buffer_xy_[i], FFTW_FORWARD, FFTW_ESTIMATE);
     }
 
-    double t = -current_time();
+    double t = -omp_get_wtime();
     for (int i = 0; i < 200; i++) {
         #pragma omp parallel
         {
@@ -51,7 +51,7 @@ int main(int argn, char** argv)
             }
         }
     }
-    t += current_time();
+    t += omp_get_wtime();
     printf("execution time: %.4f sec.\n", t);
     printf("speed: %.4f 2D FFTs / sec.\n", 200 * nfft / t);
 
