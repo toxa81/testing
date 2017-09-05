@@ -205,10 +205,10 @@ int main(int argn, char** argv)
     //== CALL_CUDA(cudaStreamDestroy, (stream2));
 
 
-    int nx{100}, ny{100};
+    int nx{160}, ny{160};
     int dim_xy[] = {nx, ny};
 
-    int nfft{100};
+    int nfft{160};
 
     cufftHandle plan1;
     CALL_CUFFT(cufftCreate, (&plan1));
@@ -226,12 +226,13 @@ int main(int argn, char** argv)
 
     double t = -current_time();
     for (int i = 0; i < 200; i++) {
-        //CALL_CUDA(cudaMemset, (buf1, 0, buf_size));
-        CALL_CUDA(cudaMemcpy, (buf1, b, sz_tmp * sizeof(cuDoubleComplex), cudaMemcpyHostToDevice));
-        randomize_on_gpu((double*)buf1, nx * ny * nfft * 2);
+        CALL_CUDA(cudaMemset, (buf1, 0, buf_size));
+        //CALL_CUDA(cudaMemcpy, (buf1, b, sz_tmp * sizeof(cuDoubleComplex), cudaMemcpyHostToDevice));
+        //randomize_on_gpu((double*)buf1, nx * ny * nfft * 2);
         CALL_CUFFT(cufftExecZ2Z, (plan1, buf1, buf1, CUFFT_FORWARD));
     }
     CALL_CUDA(cudaStreamSynchronize, (NULL));
+
     t += current_time();
     printf("execution time: %.4f sec.\n", t);
     printf("speed: %.4f 2D FFTs / sec.\n", 200 * nfft / t);
