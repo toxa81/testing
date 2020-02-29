@@ -1,4 +1,5 @@
 #include <mpi.h>
+#include <cstdio>
 
 int main(int argn, char** argv)
 {
