@@ -31,11 +31,11 @@ complex(8), intent(out) :: z
 integer :: i
 real(8) d,p
 
-z = 0.d0
+z = dcmplx(0.d0, 0.d0)
 d = 1.d0 / n
 do i = 1, n
   p = d * i * 2 * 3.141592d0
-  a(i) = exp(cmplx(0.d0, p))
+  a(i) = exp(dcmplx(0.d0, p))
 enddo
 do i = 1, n
   z = z + a(i)
